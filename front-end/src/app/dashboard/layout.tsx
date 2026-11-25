@@ -9,6 +9,7 @@ const menuItems = [
   { title: "تحلیل PCA", href: "/dashboard/pca", icon: "^_~" },
   { title: "تحلیل SVD", href: "/dashboard/svd", icon: "~_~" },
   { title: "پیشنهاد محصولات", href: "/dashboard/recommendations", icon: "^_^" },
+  { title: "فرصت ها", href: "/dashboard/opportunities", icon: "<O.^>" },
   { title: "ارزیابی نتایج", href: "/dashboard/evaluation", icon: "O.O" },
 ];
 
@@ -23,7 +24,19 @@ export default function DashboardLayout({
     <div dir="rtl" className="min-h-screen bg-background">
       <aside className="fixed right-0 top-0 z-40 flex h-screen w-64 flex-col border-l border-border bg-white p-5">
         <div className="mb-10 px-2">
-          <h1 className="text-lg font-bold text-primary">Purchase Analysis</h1>
+          <div className="flex items-center justify-between">
+            <h1 className="text-lg font-bold text-primary-dark">
+              Purchase Analysis
+            </h1>
+            <video
+              src="/videos/performance.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-10 h-10 object-contain"
+            ></video>
+          </div>
           <p className="mt-2 text-xs text-text-secondary">
             تحلیل الگوهای خرید مشتریان
           </p>

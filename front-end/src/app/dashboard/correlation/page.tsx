@@ -80,7 +80,7 @@ export default function CorrelationPage() {
       )}
 
       {error && (
-        <div className="rounded-2xl border border-red-200 bg-red-bg p-5">
+        <div className="rounded-2xl border border-red-200 bg-red-bg p-5 ">
           <h2 className="font-semibold text-red-700">خطا در دریافت اطلاعات</h2>
 
           <p className="mt-2 text-sm text-red-700">{error}</p>
@@ -97,7 +97,7 @@ export default function CorrelationPage() {
       {stepThree && !loading && !error && (
         <>
           <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <div className="rounded-2xl border border-border bg-white p-5">
+            <div className="rounded-2xl border border-border bg-white p-5 transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg">
               <p className="text-sm text-text-secondary">تعداد مشتریان</p>
 
               <p className="mt-3 text-3xl font-bold text-text-primary">
@@ -109,7 +109,7 @@ export default function CorrelationPage() {
               </p>
             </div>
 
-            <div className="rounded-2xl border border-border bg-white p-5">
+            <div className="rounded-2xl border border-border bg-white p-5 transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg">
               <p className="text-sm text-text-secondary">تعداد محصولات</p>
 
               <p className="mt-3 text-3xl font-bold text-text-primary">
@@ -121,7 +121,7 @@ export default function CorrelationPage() {
               </p>
             </div>
 
-            <div className="rounded-2xl border border-border bg-white p-5">
+            <div className="rounded-2xl border border-border bg-white p-5 transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg">
               <p className="text-sm text-text-secondary">
                 ابعاد ماتریس کوواریانس
               </p>
@@ -135,7 +135,7 @@ export default function CorrelationPage() {
               </p>
             </div>
 
-            <div className="rounded-2xl border border-border bg-white p-5">
+            <div className="rounded-2xl border border-border bg-white p-5 transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg">
               <p className="text-sm text-text-secondary">
                 ابعاد ماتریس همبستگی
               </p>
