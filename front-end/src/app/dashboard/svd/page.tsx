@@ -149,7 +149,7 @@ export default function SVDPage() {
         </h2>
 
         <p className="mt-1 text-sm text-text-secondary">
-          نمایش ۲۰ مقدار منفرد اول ماتریس خرید
+          نمایش 20 مقدار منفرد اول ماتریس خرید
         </p>
 
         <div className="mt-6 space-y-4">

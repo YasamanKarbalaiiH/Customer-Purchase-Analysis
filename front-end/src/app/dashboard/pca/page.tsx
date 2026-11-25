@@ -197,7 +197,7 @@ export default function PCAPage() {
                 واریانس توضیح‌داده‌شده مؤلفه‌ها
               </h2>
               <p className="mt-1 text-sm text-text-secondary">
-                سهم هر یک از ۲۰ مؤلفه اول در توضیح تغییرات داده‌ها
+                سهم هر یک از 20 مؤلفه اول در توضیح تغییرات داده‌ها
               </p>
             </div>
 

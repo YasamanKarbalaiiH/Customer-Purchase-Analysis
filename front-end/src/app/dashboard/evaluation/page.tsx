@@ -276,10 +276,7 @@ export default function EvaluationPage() {
               </span>
 
               <span className="text-sm font-bold text-text-primary">
-                {data.popularity_baseline.precision_at_5.toLocaleString(
-                  "fa-IR",
-                )}
-                ٪
+                {data.popularity_baseline.precision_at_5}٪
               </span>
             </div>
 
@@ -317,9 +314,7 @@ export default function EvaluationPage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <MetricCard
             title="مشتریان دارای فرصت خرید"
-            value={department.customers_with_opportunities.toLocaleString(
-              "fa-IR",
-            )}
+            value={department.customers_with_opportunities.toString()}
             description="مشتریانی که حداقل یک دپارتمان پیشنهادی داشته‌اند"
           />
 
