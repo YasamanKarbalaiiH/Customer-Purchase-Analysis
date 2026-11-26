@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 interface SVDResult {
@@ -125,15 +126,23 @@ export default function EvaluationPage() {
 
   return (
     <div className="space-y-8" dir="rtl">
-      <div>
-        <h1 className="text-2xl font-bold text-text-primary">
-          ارزیابی عملکرد سیستم پیشنهاددهنده
-        </h1>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-text-primary">
+            ارزیابی عملکرد سیستم پیشنهاددهنده
+          </h1>
 
-        <p className="mt-2 text-sm text-text-secondary">
-          بررسی میزان موفقیت پیشنهادهای تولیدشده با استفاده از خریدهای واقعی
-          مشتریان در سفارش بعدی
-        </p>
+          <p className="mt-2 text-sm text-text-secondary">
+            بررسی میزان موفقیت پیشنهادهای تولیدشده با استفاده از خریدهای واقعی
+            مشتریان در سفارش بعدی
+          </p>
+        </div>
+        <Link
+          href="/dashboard"
+          className="w-fit rounded-xl border border-border bg-white px-4 py-2 text-sm font-medium text-text-primary transition hover:bg-purple-bg"
+        >
+          بازگشت به داشبورد
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

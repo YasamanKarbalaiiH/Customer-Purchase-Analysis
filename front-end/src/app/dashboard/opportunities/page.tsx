@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 interface Neighbor {
@@ -89,15 +90,22 @@ export default function OpportunitiesPage() {
 
   return (
     <div className="space-y-8" dir="rtl">
-      <div>
-        <h1 className="text-2xl font-bold text-text-primary">
-          شناسایی فرصت‌های خرید مشتریان
-        </h1>
-
-        <p className="mt-2 text-sm text-text-secondary">
-          بررسی رفتار مشتریان مشابه با استفاده از PCA و شناسایی دپارتمان‌های
-          پیشنهادی
-        </p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-text-primary">
+            شناسایی فرصت‌های خرید مشتریان
+          </h1>
+          <p className="mt-2 text-sm text-text-secondary">
+            بررسی رفتار مشتریان مشابه با استفاده از PCA و شناسایی دپارتمان‌های
+            پیشنهادی
+          </p>
+        </div>
+        <Link
+          href="/dashboard"
+          className="w-fit rounded-xl border border-border bg-white px-4 py-2 text-sm font-medium text-text-primary transition hover:bg-purple-bg"
+        >
+          بازگشت به داشبورد
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
