@@ -50,7 +50,7 @@ export default function DashboardLayout({
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition ${
+                className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm transition transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg ${
                   active
                     ? "active-sidebar"
                     : "text-text-secondary hover:bg-primary-light hover:text-primary"
