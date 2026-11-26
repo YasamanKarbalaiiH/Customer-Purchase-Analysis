@@ -13,7 +13,7 @@ export default function Home() {
             playsInline
             className="w-40 h-40 object-contain mb-5"
           ></video>
-          <h1 className="text-4xl font-bold text-primary mb-4">
+          <h1 className="text-4xl font-bold text-primary-dark mb-4">
             Customer Purchase Analysis
           </h1>
         </div>
