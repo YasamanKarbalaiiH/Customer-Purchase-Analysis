@@ -4,13 +4,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const menuItems = [
-  { title: "نمای کلی", href: "/dashboard", icon: "⌂" },
-  { title: "همبستگی", href: "/dashboard/correlation", icon: "&" },
-  { title: "تحلیل PCA", href: "/dashboard/pca", icon: "^_~" },
-  { title: "تحلیل SVD", href: "/dashboard/svd", icon: "~_~" },
-  { title: "پیشنهاد محصولات", href: "/dashboard/recommendations", icon: "^_^" },
-  { title: "فرصت ها", href: "/dashboard/opportunities", icon: "<O.^>" },
-  { title: "ارزیابی نتایج", href: "/dashboard/evaluation", icon: "O.O" },
+  { title: "نمای کلی", href: "/dashboard", icon: "🏠" },
+  { title: "همبستگی", href: "/dashboard/correlation", icon: "⛓️‍💥" },
+  { title: "تحلیل PCA", href: "/dashboard/pca", icon: "🤝" },
+  { title: "تحلیل SVD", href: "/dashboard/svd", icon: "🪄" },
+  { title: "پیشنهاد محصولات", href: "/dashboard/recommendations", icon: "🥳" },
+  { title: "فرصت ها", href: "/dashboard/opportunities", icon: "🤭" },
+  { title: "ارزیابی نتایج", href: "/dashboard/evaluation", icon: "🧐" },
 ];
 
 export default function DashboardLayout({
