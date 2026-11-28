@@ -382,9 +382,7 @@ export default function OpportunitiesPage() {
               >
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="text-xs text-text-muted">
-                      فرصت {(index + 1).toLocaleString("fa-IR")}
-                    </p>
+                    <p className="text-xs text-text-muted">فرصت {index + 1}</p>
 
                     <h3 className="mt-1 font-bold text-text-primary">
                       {opportunity.department}
