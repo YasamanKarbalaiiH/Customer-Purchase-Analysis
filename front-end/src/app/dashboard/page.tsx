@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 type Product = {
@@ -156,6 +157,12 @@ export default function Home() {
                   ? "عدم اتصال"
                   : "وضعیت سیستم: متصل"}
             </span>
+            <Link
+              href="/"
+              className="w-fit rounded-xl border border-border bg-white px-4 py-2 text-sm font-medium text-text-primary transition hover:bg-purple-bg"
+            >
+              بازگشت به خانه
+            </Link>
           </div>
         </header>
 
