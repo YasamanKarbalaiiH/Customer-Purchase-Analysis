@@ -175,7 +175,7 @@ export default function OpportunitiesPage() {
           <select
             value={selectedK}
             onChange={(event) => setSelectedK(Number(event.target.value))}
-            className="rounded-xl border border-border bg-white px-4 py-2 text-sm text-text-primary"
+            className="rounded-xl border border-border bg-white px-4 py-2 text-sm text-text-primary "
           >
             {data.component_counts.map((k) => (
               <option key={k} value={k}>
@@ -188,7 +188,7 @@ export default function OpportunitiesPage() {
         {selectedResult && (
           <>
             <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="rounded-xl bg-purple-bg p-4">
+              <div className="rounded-xl bg-purple-bg p-4 transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg">
                 <p className="text-sm text-text-secondary">
                   تعداد مؤلفه‌های انتخاب‌شده
                 </p>
@@ -198,7 +198,7 @@ export default function OpportunitiesPage() {
                 </p>
               </div>
 
-              <div className="rounded-xl bg-blue-bg p-4">
+              <div className="rounded-xl bg-blue-bg p-4 transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-lg">
                 <p className="text-sm text-text-secondary">
                   مجموع فرصت‌های مشتری-دپارتمان
                 </p>

@@ -156,7 +156,7 @@ export default function RecommendationsPage() {
             <button
               key={k}
               onClick={() => setSelectedK(String(k))}
-              className={`rounded-xl px-6 py-3 text-sm font-medium transition ${
+              className={`rounded-xl px-6 py-3 text-sm font-medium transition duration-300 ease-out hover:-translate-y-1 hover:shadow-lg ${
                 selectedK === String(k)
                   ? "bg-primary text-white"
                   : "bg-purple-bg text-text-primary hover:bg-secondary"
@@ -176,7 +176,7 @@ export default function RecommendationsPage() {
             <button
               key={customer.customer_id}
               onClick={() => setSelectedCustomer(customer.customer_id)}
-              className={`rounded-xl px-4 py-2 text-sm transition ${
+              className={`rounded-xl px-4 py-2 text-sm transition duration-300 ease-out hover:-translate-y-1 hover:shadow-lg ${
                 selectedCustomer === customer.customer_id
                   ? "bg-primary text-white"
                   : "bg-purple-bg text-text-primary hover:bg-secondary"
