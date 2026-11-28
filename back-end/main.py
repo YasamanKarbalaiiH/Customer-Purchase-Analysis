@@ -642,6 +642,7 @@ def get_step_six_summary():
         "popularity_baseline": baseline_recommendations
     }
 
+
 def get_step_seven_summary():
     data = load_project_data()
 
@@ -653,7 +654,6 @@ def get_step_seven_summary():
     customer_count, product_count = X.shape
 
     products = products.copy()
-
     products["product_id"] = products["product_id"].astype(int)
 
     products["name_suffix"] = (
@@ -703,9 +703,7 @@ def get_step_seven_summary():
             product["department"]
         ]
 
-        purchased = (
-            X_df[column_name].to_numpy() > 0
-        )
+        purchased = X_df[column_name].to_numpy() > 0
 
         department_matrix[:, department_index] = np.maximum(
             department_matrix[:, department_index],
@@ -713,7 +711,6 @@ def get_step_seven_summary():
         )
 
     product_means = np.mean(X, axis=0)
-
     X_centered = X - product_means
 
     covariance_matrix = (
@@ -725,112 +722,175 @@ def get_step_seven_summary():
     )
 
     sorted_indices = np.argsort(eigenvalues)[::-1]
-
     eigenvectors = eigenvectors[:, sorted_indices]
 
-    pca_component_count = min(20, product_count)
-
-    selected_vectors = eigenvectors[
-        :, :pca_component_count
-    ]
-
-    projected_customers = X_centered @ selected_vectors
-
+    component_counts = [5, 10, 20]
     neighbors_count = min(20, customer_count - 1)
-
     threshold = 0.70
 
+    department_buyers = np.sum(
+        department_matrix, axis=0
+    )
+
+    department_nonbuyers = (
+        customer_count - department_buyers
+    )
+
+    sensitivity_results = []
     opportunities_by_customer = []
 
-    for customer_index in range(customer_count):
+    for k in component_counts:
 
-        distances = np.linalg.norm(
-            projected_customers - projected_customers[customer_index],
-            axis=1
+        actual_k = min(k, product_count)
+
+        selected_vectors = eigenvectors[:, :actual_k]
+
+        projected_customers = (
+            X_centered @ selected_vectors
         )
 
-        distances[customer_index] = np.inf
-
-        nearest_indices = np.argsort(
-            distances
-        )[:neighbors_count]
-
-        neighbors_department_data = department_matrix[
-            nearest_indices
-        ]
-
-        department_purchase_counts = np.sum(
-            neighbors_department_data,
-            axis=0
+        potential_counts = np.zeros(
+            len(departments), dtype=np.int32
         )
 
-        department_percentages = (
-            department_purchase_counts / neighbors_count
-        )
+        current_opportunities = []
 
-        customer_departments = department_matrix[
-            customer_index
-        ]
+        for customer_index in range(customer_count):
 
-        opportunities = []
+            distances = np.linalg.norm(
+                projected_customers
+                - projected_customers[customer_index],
+                axis=1
+            )
+
+            distances[customer_index] = np.inf
+
+            nearest_indices = np.argsort(
+                distances
+            )[:neighbors_count]
+
+            neighbors_department_data = department_matrix[
+                nearest_indices
+            ]
+
+            department_purchase_counts = np.sum(
+                neighbors_department_data,
+                axis=0
+            )
+
+            department_percentages = (
+                department_purchase_counts / neighbors_count
+            )
+
+            customer_departments = department_matrix[
+                customer_index
+            ]
+
+            opportunities = []
+
+            for department_index, department in enumerate(departments):
+
+                if customer_departments[department_index] == 1:
+                    continue
+
+                percentage = department_percentages[
+                    department_index
+                ]
+
+                if percentage >= threshold:
+
+                    potential_counts[department_index] += 1
+
+                    opportunities.append({
+                        "department": department,
+                        "customer_count": int(
+                            department_purchase_counts[department_index]
+                        ),
+                        "total_neighbors": int(neighbors_count),
+                        "percentage": round(
+                            float(percentage * 100), 2
+                        )
+                    })
+
+            opportunities.sort(
+                key=lambda item: item["percentage"],
+                reverse=True
+            )
+
+            if k == 20:
+
+                nearest_customers = [
+                    {
+                        "customer_id": int(index + 1),
+                        "distance": round(
+                            float(distances[index]), 6
+                        )
+                    }
+                    for index in nearest_indices
+                ]
+
+                current_opportunities.append({
+                    "customer_id": int(customer_index + 1),
+                    "neighbors": nearest_customers,
+                    "opportunities": opportunities[:3]
+                })
+
+        department_summary = []
 
         for department_index, department in enumerate(departments):
 
-            if customer_departments[department_index] == 1:
-                continue
+            buyers = int(department_buyers[department_index])
+            nonbuyers = int(department_nonbuyers[department_index])
+            potential = int(potential_counts[department_index])
 
-            percentage = department_percentages[
-                department_index
-            ]
+            potential_percentage = (
+                potential / nonbuyers * 100
+                if nonbuyers > 0 else 0
+            )
 
-            if percentage >= threshold:
+            department_summary.append({
+                "department": department,
+                "buyers_count": buyers,
+                "nonbuyers_count": nonbuyers,
+                "potential_customers": potential,
+                "potential_percentage": round(
+                    float(potential_percentage), 2
+                )
+            })
 
-                opportunities.append({
-                    "department": department,
-                    "customer_count": int(
-                        department_purchase_counts[department_index]
-                    ),
-                    "total_neighbors": int(neighbors_count),
-                    "percentage": round(
-                        float(percentage * 100), 2
-                    )
-                })
-
-        opportunities.sort(
-            key=lambda item: item["percentage"],
+        department_summary.sort(
+            key=lambda item: item["potential_customers"],
             reverse=True
         )
 
-        top_opportunities = opportunities[:3]
+        top_three_departments = department_summary[:3]
 
-        nearest_customers = [
-            {
-                "customer_id": int(index + 1),
-                "distance": round(
-                    float(distances[index]), 6
-                )
-            }
-            for index in nearest_indices
-        ]
-
-        opportunities_by_customer.append({
-            "customer_id": int(customer_index + 1),
-            "neighbors": nearest_customers,
-            "opportunities": top_opportunities
+        sensitivity_results.append({
+            "pca_components": int(actual_k),
+            "department_summary": department_summary,
+            "top_three_departments": top_three_departments,
+            "total_potential_customers": int(
+                np.sum(potential_counts)
+            )
         })
+
+        if k == 20:
+            opportunities_by_customer = current_opportunities
 
     return {
         "customer_count": int(customer_count),
         "product_count": int(product_count),
         "department_count": int(len(departments)),
         "departments": departments,
-        "pca_components": int(pca_component_count),
+        "pca_components": 20,
+        "component_counts": component_counts,
         "neighbors_count": int(neighbors_count),
         "threshold_percent": 70,
         "department_matrix_shape": list(
             department_matrix.shape
         ),
-        "opportunities_by_customer": opportunities_by_customer
+        "opportunities_by_customer": opportunities_by_customer,
+        "sensitivity_results": sensitivity_results
     }
 
 
@@ -851,6 +911,9 @@ def get_step_eight_summary():
 
     if not np.array_equal(X_df.columns, Y_df.columns):
         raise ValueError("X and Y product columns do not match.")
+
+    if customer_count < 2:
+        raise ValueError("At least two customers are required.")
 
     recommendation_count = min(5, product_count)
     component_counts = [5, 10, 20, 40]
@@ -1020,68 +1083,184 @@ def get_step_eight_summary():
 
         department_columns[department].append(column_name)
 
+    product_means = np.mean(X, axis=0)
+    X_centered = X - product_means
+
+    covariance_matrix = (
+        X_centered.T @ X_centered
+    ) / (customer_count - 1)
+
+    eigenvalues, eigenvectors = np.linalg.eigh(
+        covariance_matrix
+    )
+
+    sorted_indices = np.argsort(eigenvalues)[::-1]
+
+    eigenvectors = eigenvectors[:, sorted_indices]
+
     step_seven_data = get_step_seven_summary()
 
-    opportunities_by_customer = (
-        step_seven_data["opportunities_by_customer"]
+    department_evaluations = []
+
+    pca_component_counts = [5, 10, 20]
+
+    neighbors_count = min(20, customer_count - 1)
+    threshold = 0.70
+
+    department_names = list(department_columns.keys())
+
+    department_column_indices = {}
+
+    for department, columns in department_columns.items():
+        department_column_indices[department] = [
+            X_df.columns.get_loc(column)
+            for column in columns
+        ]
+
+    customer_department_matrix = np.zeros(
+        (customer_count, len(department_names)),
+        dtype=np.int8
     )
 
-    total_opportunities = 0
-    matched_opportunities = 0
-    customers_with_opportunities = 0
-    customers_with_department_hits = 0
+    for department_index, department in enumerate(department_names):
+        column_indices = department_column_indices[department]
 
-    for customer_data in opportunities_by_customer:
-        customer_index = customer_data["customer_id"] - 1
+        customer_department_matrix[:, department_index] = (
+            np.any(
+                X[:, column_indices] > 0,
+                axis=1
+            ).astype(np.int8)
+        )
 
-        actual_next_order = Y[customer_index] > 0
+    for k in pca_component_counts:
 
-        opportunities = customer_data["opportunities"]
+        actual_k = min(k, product_count)
 
-        if not opportunities:
-            continue
+        selected_vectors = eigenvectors[:, :actual_k]
 
-        customers_with_opportunities += 1
+        projected_customers = X_centered @ selected_vectors
 
-        customer_has_hit = False
+        potential_customers_by_department = {
+            department: set()
+            for department in department_names
+        }
 
-        for opportunity in opportunities:
-            department = opportunity["department"]
+        for customer_index in range(customer_count):
 
-            columns = department_columns.get(
-                department, []
+            distances = np.linalg.norm(
+                projected_customers
+                - projected_customers[customer_index],
+                axis=1
             )
 
-            column_indices = [
-                X_df.columns.get_loc(column)
-                for column in columns
+            distances[customer_index] = np.inf
+
+            nearest_indices = np.argsort(
+                distances
+            )[:neighbors_count]
+
+            neighbors_department_data = (
+                customer_department_matrix[nearest_indices]
+            )
+
+            department_purchase_counts = np.sum(
+                neighbors_department_data,
+                axis=0
+            )
+
+            department_percentages = (
+                department_purchase_counts / neighbors_count
+            )
+
+            for department_index, department in enumerate(department_names):
+
+                if customer_department_matrix[
+                    customer_index, department_index
+                ] == 1:
+                    continue
+
+                if department_percentages[department_index] >= threshold:
+                    potential_customers_by_department[
+                        department
+                    ].add(customer_index)
+
+        department_results = []
+
+        for department_index, department in enumerate(department_names):
+
+            column_indices = department_column_indices[department]
+
+            potential_indices = sorted(
+                potential_customers_by_department[department]
+            )
+
+            nonbuyer_mask = (
+                customer_department_matrix[:, department_index] == 0
+            )
+
+            other_nonbuyer_indices = [
+                index
+                for index in np.where(nonbuyer_mask)[0]
+                if index not in potential_customers_by_department[department]
             ]
 
-            department_purchased = bool(
-                np.any(actual_next_order[column_indices])
+            potential_hits = sum(
+                np.any(Y[index, column_indices] > 0)
+                for index in potential_indices
             )
 
-            total_opportunities += 1
+            other_hits = sum(
+                np.any(Y[index, column_indices] > 0)
+                for index in other_nonbuyer_indices
+            )
 
-            if department_purchased:
-                matched_opportunities += 1
-                customer_has_hit = True
+            potential_rate = (
+                potential_hits / len(potential_indices) * 100
+                if potential_indices
+                else 0
+            )
 
-        if customer_has_hit:
-            customers_with_department_hits += 1
+            other_rate = (
+                other_hits / len(other_nonbuyer_indices) * 100
+                if other_nonbuyer_indices
+                else 0
+            )
 
-    department_opportunity_hit_rate = (
-        matched_opportunities / total_opportunities
-        if total_opportunities > 0
-        else 0
-    )
+            department_results.append({
+                "department": department,
+                "potential_customers": int(
+                    len(potential_indices)
+                ),
+                "potential_customers_purchased": int(
+                    potential_hits
+                ),
+                "potential_purchase_rate": round(
+                    float(potential_rate), 2
+                ),
+                "other_nonbuyers": int(
+                    len(other_nonbuyer_indices)
+                ),
+                "other_nonbuyers_purchased": int(
+                    other_hits
+                ),
+                "other_purchase_rate": round(
+                    float(other_rate), 2
+                ),
+                "rate_difference": round(
+                    float(potential_rate - other_rate), 2
+                )
+            })
 
-    department_customer_hit_rate = (
-        customers_with_department_hits /
-        customers_with_opportunities
-        if customers_with_opportunities > 0
-        else 0
-    )
+        department_results.sort(
+            key=lambda item: item["potential_customers"],
+            reverse=True
+        )
+
+        department_evaluations.append({
+            "pca_components": int(actual_k),
+            "departments": department_results,
+            "top_three_departments": department_results[:3]
+        })
 
     return {
         "customer_count": int(customer_count),
@@ -1092,27 +1271,8 @@ def get_step_eight_summary():
         "svd_results": svd_results,
         "popularity_baseline": baseline_result,
         "department_evaluation": {
-            "customers_with_opportunities": int(
-                customers_with_opportunities
-            ),
-            "customers_with_department_hits": int(
-                customers_with_department_hits
-            ),
-            "total_opportunities": int(
-                total_opportunities
-            ),
-            "matched_opportunities": int(
-                matched_opportunities
-            ),
-            "opportunity_hit_rate": round(
-                float(
-                    department_opportunity_hit_rate * 100
-                ), 2
-            ),
-            "customer_hit_rate": round(
-                float(
-                    department_customer_hit_rate * 100
-                ), 2
-            )
+            "neighbors_count": int(neighbors_count),
+            "threshold_percent": 70,
+            "by_pca_components": department_evaluations
         }
     }

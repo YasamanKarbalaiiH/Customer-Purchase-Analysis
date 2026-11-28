@@ -20,22 +20,38 @@ interface CustomerOpportunity {
   neighbors: Neighbor[];
   opportunities: Opportunity[];
 }
+interface DepartmentSummary {
+  department: string;
+  buyers_count: number;
+  nonbuyers_count: number;
+  potential_customers: number;
+  potential_percentage: number;
+}
 
+interface SensitivityResult {
+  pca_components: number;
+  department_summary: DepartmentSummary[];
+  top_three_departments: DepartmentSummary[];
+  total_potential_customers: number;
+}
 interface StepSevenData {
   customer_count: number;
   product_count: number;
   department_count: number;
   departments: string[];
   pca_components: number;
+  component_counts: number[];
   neighbors_count: number;
   threshold_percent: number;
   department_matrix_shape: number[];
   opportunities_by_customer: CustomerOpportunity[];
+  sensitivity_results: SensitivityResult[];
 }
 
 export default function OpportunitiesPage() {
   const [data, setData] = useState<StepSevenData | null>(null);
   const [selectedCustomer, setSelectedCustomer] = useState(1);
+  const [selectedK, setSelectedK] = useState(20);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -87,6 +103,9 @@ export default function OpportunitiesPage() {
 
   const neighbors = currentCustomer?.neighbors ?? [];
   const opportunities = currentCustomer?.opportunities ?? [];
+  const selectedResult = data.sensitivity_results.find(
+    (item) => item.pca_components === selectedK,
+  );
 
   return (
     <div className="space-y-8" dir="rtl">
@@ -141,6 +160,144 @@ export default function OpportunitiesPage() {
           </p>
         </div>
       </div>
+      <div className="rounded-2xl border border-border bg-white p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-bold text-text-primary">
+              تحلیل حساسیت PCA
+            </h2>
+
+            <p className="mt-2 text-sm text-text-secondary">
+              تأثیر تعداد مؤلفه‌های PCA بر شناسایی مشتریان بالقوه
+            </p>
+          </div>
+
+          <select
+            value={selectedK}
+            onChange={(event) => setSelectedK(Number(event.target.value))}
+            className="rounded-xl border border-border bg-white px-4 py-2 text-sm text-text-primary"
+          >
+            {data.component_counts.map((k) => (
+              <option key={k} value={k}>
+                {k} مؤلفه
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {selectedResult && (
+          <>
+            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="rounded-xl bg-purple-bg p-4">
+                <p className="text-sm text-text-secondary">
+                  تعداد مؤلفه‌های انتخاب‌شده
+                </p>
+
+                <p className="mt-2 text-2xl font-bold text-text-primary">
+                  {selectedResult.pca_components}
+                </p>
+              </div>
+
+              <div className="rounded-xl bg-blue-bg p-4">
+                <p className="text-sm text-text-secondary">
+                  مجموع فرصت‌های مشتری-دپارتمان
+                </p>
+
+                <p className="mt-2 text-2xl font-bold text-text-primary">
+                  {selectedResult.total_potential_customers}
+                </p>
+              </div>
+            </div>
+
+            <h3 className="mt-8 mb-4 font-semibold text-text-primary">
+              سه دپارتمان برتر
+            </h3>
+
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-137.5 text-sm">
+                <thead>
+                  <tr className="border-b border-border text-right text-text-secondary">
+                    <th className="p-3">رتبه</th>
+                    <th className="p-3">دپارتمان</th>
+                    <th className="p-3">مشتریان بالقوه</th>
+                    <th className="p-3">درصد مشتریان بالقوه</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {selectedResult.top_three_departments.map(
+                    (department, index) => (
+                      <tr
+                        key={department.department}
+                        className="border-b border-border last:border-0"
+                      >
+                        <td className="p-3">{index + 1}</td>
+                        <td className="p-3 font-medium text-text-primary">
+                          {department.department}
+                        </td>
+                        <td className="p-3">
+                          {department.potential_customers}
+                        </td>
+                        <td className="p-3">
+                          {department.potential_percentage}%
+                        </td>
+                      </tr>
+                    ),
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+      </div>
+      {selectedResult && (
+        <div className="rounded-2xl border border-border bg-white p-6">
+          <h2 className="text-lg font-bold text-text-primary">
+            گزارش کامل دپارتمان‌ها
+          </h2>
+
+          <p className="mt-2 text-sm text-text-secondary">
+            آمار مشتریان و فرصت‌های فروش هر دپارتمان
+          </p>
+
+          <div className="mt-6 overflow-x-auto">
+            <table className="w-full min-w-175 text-sm">
+              <thead>
+                <tr className="border-b border-border text-right text-text-secondary">
+                  <th className="p-3">دپارتمان</th>
+                  <th className="p-3">خریداران</th>
+                  <th className="p-3">فاقدان خرید</th>
+                  <th className="p-3">مشتریان بالقوه</th>
+                  <th className="p-3">درصد مشتریان بالقوه</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {selectedResult.department_summary.map((department) => (
+                  <tr
+                    key={department.department}
+                    className="border-b border-border last:border-0"
+                  >
+                    <td className="p-3 font-medium text-text-primary">
+                      {department.department}
+                    </td>
+
+                    <td className="p-3">{department.buyers_count}</td>
+
+                    <td className="p-3">{department.nonbuyers_count}</td>
+
+                    <td className="p-3 font-semibold text-text-primary">
+                      {department.potential_customers}
+                    </td>
+
+                    <td className="p-3">{department.potential_percentage}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       <div className="rounded-2xl border border-border bg-white p-6">
         <label className="mb-3 block text-sm font-semibold text-text-primary">

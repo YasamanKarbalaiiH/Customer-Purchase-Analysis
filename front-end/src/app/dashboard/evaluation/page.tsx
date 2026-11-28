@@ -20,13 +20,27 @@ interface BaselineResult {
   customer_hit_rate: number;
 }
 
+interface DepartmentResult {
+  department: string;
+  potential_customers: number;
+  potential_customers_purchased: number;
+  potential_purchase_rate: number;
+  other_nonbuyers: number;
+  other_nonbuyers_purchased: number;
+  other_purchase_rate: number;
+  rate_difference: number;
+}
+
+interface PCAEvaluation {
+  pca_components: number;
+  departments: DepartmentResult[];
+  top_three_departments: DepartmentResult[];
+}
+
 interface DepartmentEvaluation {
-  customers_with_opportunities: number;
-  customers_with_department_hits: number;
-  total_opportunities: number;
-  matched_opportunities: number;
-  opportunity_hit_rate: number;
-  customer_hit_rate: number;
+  neighbors_count: number;
+  threshold_percent: number;
+  by_pca_components: PCAEvaluation[];
 }
 
 interface StepEightData {
@@ -73,6 +87,7 @@ export default function EvaluationPage() {
   const [data, setData] = useState<StepEightData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedK, setSelectedK] = useState(20);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -123,6 +138,9 @@ export default function EvaluationPage() {
   );
 
   const department = data.department_evaluation;
+  const selectedPCA = department.by_pca_components.find(
+    (item) => item.pca_components === selectedK,
+  );
 
   return (
     <div className="space-y-8" dir="rtl">
@@ -309,66 +327,169 @@ export default function EvaluationPage() {
       </section>
 
       <section className="rounded-2xl border border-border bg-white p-6">
-        <div className="mb-6">
-          <h2 className="text-lg font-bold text-text-primary">
-            ارزیابی فرصت‌های پیشنهادی دپارتمان‌ها
-          </h2>
-
-          <p className="mt-2 text-sm text-text-secondary">
-            بررسی خرید واقعی مشتریان از دپارتمان‌هایی که در مرحله هفتم به‌عنوان
-            فرصت خرید شناسایی شده بودند
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <MetricCard
-            title="مشتریان دارای فرصت خرید"
-            value={department.customers_with_opportunities.toString()}
-            description="مشتریانی که حداقل یک دپارتمان پیشنهادی داشته‌اند"
-          />
-
-          <MetricCard
-            title="فرصت‌های پیشنهادی"
-            value={department.total_opportunities.toString()}
-            description="مجموع دپارتمان‌های پیشنهادی"
-          />
-
-          <MetricCard
-            title="فرصت‌های منطبق با خرید واقعی"
-            value={department.matched_opportunities.toString()}
-            description="دپارتمان‌هایی که در سفارش بعدی خریداری شده‌اند"
-          />
-        </div>
-
-        <div className="mt-6 space-y-5">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
-            <div className="mb-2 flex items-center justify-between gap-3">
-              <span className="text-sm font-semibold text-text-primary">
-                نرخ موفقیت فرصت‌های دپارتمانی
-              </span>
+            <h2 className="text-lg font-bold text-text-primary">
+              ارزیابی فرصت‌های پیشنهادی دپارتمان‌ها
+            </h2>
 
-              <span className="text-sm font-bold text-primary">
-                {department.opportunity_hit_rate}٪
-              </span>
-            </div>
-
-            <ProgressBar value={department.opportunity_hit_rate} />
+            <p className="mt-2 text-sm text-text-secondary">
+              مقایسه نرخ خرید مشتریان بالقوه با سایر مشتریان فاقد خرید
+            </p>
           </div>
 
-          <div>
-            <div className="mb-2 flex items-center justify-between gap-3">
-              <span className="text-sm font-semibold text-text-primary">
-                نرخ مشتریان دارای خرید موفق
-              </span>
+          <select
+            value={selectedK}
+            onChange={(event) => setSelectedK(Number(event.target.value))}
+            className="rounded-xl border border-border bg-white px-4 py-2 text-sm text-text-primary"
+          >
+            {department.by_pca_components.map((item) => (
+              <option key={item.pca_components} value={item.pca_components}>
+                PCA با {item.pca_components} مؤلفه
+              </option>
+            ))}
+          </select>
+        </div>
 
-              <span className="text-sm font-bold text-primary">
-                {department.customer_hit_rate}٪
-              </span>
+        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <MetricCard
+            title="تعداد همسایه‌های مشابه"
+            value={department.neighbors_count.toString()}
+            description="مشتریان مشابه برای هر مشتری"
+          />
+
+          <MetricCard
+            title="آستانه شناسایی فرصت"
+            value={`${department.threshold_percent}٪`}
+            description="حداقل درصد خرید همسایه‌ها"
+          />
+        </div>
+
+        {selectedPCA && (
+          <>
+            <h3 className="mb-4 font-semibold text-text-primary">
+              سه دپارتمان دارای بیشترین مشتری بالقوه
+            </h3>
+
+            <div className="mb-8 overflow-x-auto">
+              <table className="w-full min-w-137.5 text-right text-sm">
+                <thead>
+                  <tr className="border-b border-border text-text-secondary">
+                    <th className="p-3">رتبه</th>
+                    <th className="p-3">دپارتمان</th>
+                    <th className="p-3">مشتریان بالقوه</th>
+                    <th className="p-3">نرخ خرید بالقوه</th>
+                    <th className="p-3">اختلاف نرخ خرید</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {selectedPCA.top_three_departments.map((item, index) => (
+                    <tr
+                      key={item.department}
+                      className="border-b border-border last:border-0"
+                    >
+                      <td className="p-3">{index + 1}</td>
+                      <td className="p-3 font-medium text-text-primary">
+                        {item.department}
+                      </td>
+                      <td className="p-3">{item.potential_customers}</td>
+                      <td className="p-3">{item.potential_purchase_rate}٪</td>
+                      <td className="p-3">
+                        {item.rate_difference > 0 ? "+" : ""}
+                        {item.rate_difference} واحد درصد
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
 
-            <ProgressBar value={department.customer_hit_rate} />
-          </div>
-        </div>
+            <h3 className="mb-4 font-semibold text-text-primary">
+              گزارش کامل دپارتمان‌ها
+            </h3>
+
+            <div className="space-y-5">
+              {selectedPCA.departments.map((item) => (
+                <div
+                  key={item.department}
+                  className="rounded-xl border border-border p-4"
+                >
+                  <h4 className="mb-5 font-semibold text-text-primary">
+                    {item.department}
+                  </h4>
+
+                  <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                    <MetricCard
+                      title="مشتریان بالقوه"
+                      value={item.potential_customers.toString()}
+                      description="مشتریان شناسایی‌شده توسط PCA"
+                    />
+
+                    <MetricCard
+                      title="خرید موفق بالقوه‌ها"
+                      value={item.potential_customers_purchased.toString()}
+                      description="خرید در سفارش بعدی"
+                    />
+
+                    <MetricCard
+                      title="سایر مشتریان فاقد خرید"
+                      value={item.other_nonbuyers.toString()}
+                      description="مشتریان خارج از گروه بالقوه"
+                    />
+
+                    <MetricCard
+                      title="خرید موفق سایر مشتریان"
+                      value={item.other_nonbuyers_purchased.toString()}
+                      description="خرید در سفارش بعدی"
+                    />
+                  </div>
+
+                  <div className="space-y-5">
+                    <div>
+                      <div className="mb-2 flex justify-between gap-3">
+                        <span className="text-sm text-text-secondary">
+                          نرخ خرید مشتریان بالقوه
+                        </span>
+
+                        <span className="text-sm font-bold text-primary">
+                          {item.potential_purchase_rate}٪
+                        </span>
+                      </div>
+
+                      <ProgressBar value={item.potential_purchase_rate} />
+                    </div>
+
+                    <div>
+                      <div className="mb-2 flex justify-between gap-3">
+                        <span className="text-sm text-text-secondary">
+                          نرخ خرید سایر مشتریان فاقد خرید
+                        </span>
+
+                        <span className="text-sm font-bold text-text-primary">
+                          {item.other_purchase_rate}٪
+                        </span>
+                      </div>
+
+                      <ProgressBar value={item.other_purchase_rate} />
+                    </div>
+                  </div>
+
+                  <div className="mt-5 rounded-xl bg-purple-bg p-4">
+                    <p className="text-sm text-text-secondary">
+                      اختلاف نرخ خرید دو گروه
+                    </p>
+
+                    <p className="mt-2 text-xl font-bold text-text-primary">
+                      {item.rate_difference > 0 ? "+" : ""}
+                      {item.rate_difference} واحد درصد
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </section>
     </div>
   );
